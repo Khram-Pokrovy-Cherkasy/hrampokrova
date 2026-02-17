@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Імена за упокій — Піст 2026</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>Імена за упокій</h1>
+  <a href="../">← На головну</a>
+  <div id="list"></div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbwLVD4dHQiUV-uFABORw2u-hb_vUg8Yb9YSkgO9Ex--CvQ49qb5SQ2KxIE1n9B8wysY/exec?type=repose';
+const CACHE_KEY = 'pist2026_repose';
+const CACHE_TTL = 60 * 1000;
+
+applySettings();
+load();
+
+async function load() {
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    render(JSON.parse(cached));
+    fetchAndUpdate();
+  } else {
+    fetchAndUpdate();
+  }
+}
+
+async function fetchAndUpdate() {
+  const res = await fetch(API);
+  const json = await res.json();
+  localStorage.setItem(CACHE_KEY, JSON.stringify(json));
+  render(json);
+}
+
+function render(data) {
+  const root = document.getElementById('list');
+  root.innerHTML = '';
+  data.rows.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `<pre>${escapeHtml(r.text)}</pre>`;
+    root.appendChild(div);
+  });
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function applySettings() {
+  const s = JSON.parse(localStorage.getItem('ui') || '{}');
+  if (s.theme) document.documentElement.dataset.theme = s.theme;
+  if (s.font) document.documentElement.style.setProperty('--font', s.font);
+  if (s.size) document.documentElement.style.setProperty('--size', s.size + 'px');
+}
+</script>
+</body>
+</html>
