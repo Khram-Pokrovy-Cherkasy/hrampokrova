@@ -1,0 +1,16 @@
+<div class="toolbar">
+  <button onclick="fontStep(-20)">A--</button>
+  <button onclick="fontStep(-10)">A-</button>
+  <button onclick="fontStep(0)">A</button>
+  <button onclick="fontStep(10)">A+</button>
+  <button onclick="fontStep(20)">A++</button>
+
+  <select onchange="setFont(this.value)">
+    <option value="system-ui">Системний</option>
+    <option value="serif">Serif</option>
+    <option value="sans-serif">Sans</option>
+    <option value="monospace">Mono</option>
+  </select>
+
+  <button onclick="toggleTheme()">🌙/☀️ Тема</button>
+</div>

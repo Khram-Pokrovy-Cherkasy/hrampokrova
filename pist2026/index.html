@@ -1,122 +1,34 @@
-<!doctype html>
-<html lang="uk">
+<!DOCTYPE html>
+<html lang="uk" data-type="all">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Піст 2026 — записки</title>
-  <style>
-    :root {
-      --bg: #ffffff;
-      --fg: #111111;
-      --card: #f2f2f2;
-      --link: #2a66ff;
-      --font: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif;
-      --size: 18px;
-    }
-    [data-theme="dark"] {
-      --bg: #0f1216;
-      --fg: #e6e6e6;
-      --card: #1b1f26;
-      --link: #7aa2ff;
-    }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: var(--font);
-      font-size: var(--size);
-      line-height: 1.6;
-    }
-    .wrap { max-width: 900px; margin: auto; padding: 16px; }
-    h1 { margin-top: 0; }
-    a { color: var(--link); text-decoration: none; }
-    .card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 16px;
-      margin: 12px 0;
-    }
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin: 12px 0 20px;
-    }
-    select, input[type="range"], button {
-      width: 100%;
-      padding: 8px;
-      font-size: 1em;
-    }
-    .links a {
-      display: block;
-      padding: 12px;
-      border-radius: 10px;
-      background: var(--card);
-      margin: 8px 0;
-    }
-  </style>
+  <title>Пам’ятний список 2026</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-  <div class="wrap">
-    <h1>Піст 2026</h1>
+<body data-type="all">
+  <!-- header -->
+  <div id="header"></div>
 
-    <div class="card">
-      <strong>Налаштування вигляду</strong>
-      <div class="controls">
-        <select id="font">
-          <option value="system">Системний</option>
-          <option value="serif">Serif</option>
-          <option value="sans">Sans-serif</option>
-          <option value="mono">Monospace</option>
-        </select>
-        <input id="size" type="range" min="14" max="36" value="18">
-        <button id="theme">🌗 Тема</button>
-      </div>
-    </div>
+  <!-- toolbar -->
+  <div id="toolbar"></div>
 
-    <div class="links">
-      <a href="./za-zdorovya/">➡ Імена за здоров'я</a>
-      <a href="./za-spokiy/">➡ Імена за упокій</a>
-    </div>
-  </div>
+  <main>
+    <div id="data"></div>
+  </main>
 
-<script>
-const root = document.documentElement;
+  <!-- footer -->
+  <div id="footer"></div>
 
-function applySettings() {
-  const s = JSON.parse(localStorage.getItem('ui') || '{}');
-  if (s.theme) root.dataset.theme = s.theme;
-  if (s.font) root.style.setProperty('--font', s.font);
-  if (s.size) root.style.setProperty('--size', s.size + 'px');
-}
-applySettings();
-
-document.getElementById('theme').onclick = () => {
-  const t = root.dataset.theme === 'dark' ? 'light' : 'dark';
-  root.dataset.theme = t;
-  save({ theme: t });
-};
-
-document.getElementById('font').onchange = e => {
-  const map = {
-    system: 'system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif',
-    serif: 'Georgia, "Times New Roman", serif',
-    sans: 'Arial, Helvetica, sans-serif',
-    mono: 'ui-monospace, SFMono-Regular, Menlo, monospace'
-  };
-  root.style.setProperty('--font', map[e.target.value]);
-  save({ font: map[e.target.value] });
-};
-
-document.getElementById('size').oninput = e => {
-  root.style.setProperty('--size', e.target.value + 'px');
-  save({ size: e.target.value });
-};
-
-function save(part) {
-  const s = JSON.parse(localStorage.getItem('ui') || '{}');
-  localStorage.setItem('ui', JSON.stringify({ ...s, ...part }));
-}
-</script>
+  <script src="components/api-url.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    // Динамічне підключення компонентів
+    ['header','toolbar','footer'].forEach(id=>{
+      fetch(`components/${id}.html`).then(r=>r.text()).then(t=>{
+        document.getElementById(id).innerHTML = t;
+      });
+    });
+  </script>
 </body>
 </html>
