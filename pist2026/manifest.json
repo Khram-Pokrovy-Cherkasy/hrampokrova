@@ -1,15 +1,23 @@
 {
   "short_name": "Храм Покрова",
   "name": "Пом'янник Храму Покрова",
+  "description": "Списки імен для молитви",
   "start_url": "/pist2026/index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "theme_color": "#28a745",
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "favicon.ico", 
-      "sizes": "64x64",
-      "type": "image/x-icon"
+      "src": "https://hrampokrova.pp.ua/android-chrome-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://hrampokrova.pp.ua/android-chrome-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
     }
   ]
 }
