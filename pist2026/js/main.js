@@ -34,49 +34,52 @@ function initLineDrag(line) {
     const moveLine = (e) => {
         if (!isDragging) return;
         
-        // Зупиняємо будь-які інші дії браузера (важливо для мобільних)
+        // Запобігаємо виділенню тексту та скролу під час руху
         if (e.cancelable) e.preventDefault();
 
-        // Отримуємо Y координату
         const y = e.touches ? e.touches[0].clientY : e.clientY;
         
-        // Обмежуємо рух лініі, щоб вона не виходила за межі видимого екрана
-        const minY = 20; // запас зверху
-        const maxY = window.innerHeight - 20; // запас знизу
-        
+        // Обмеження, щоб лінія не виходила за екран
+        const minY = 10;
+        const maxY = window.innerHeight - 10;
         const constrainedY = Math.max(minY, Math.min(y, maxY));
+        
         line.style.top = `${constrainedY}px`;
     };
 
-    const startDrag = (e) => {
+    const startDrag = () => {
         isDragging = true;
-        line.style.opacity = "0.9";
-        line.style.height = "6px"; // трохи потовщуємо при русі
+        line.style.opacity = "0.8";
+        // Більше не міняємо висоту (line.style.height), щоб не було дрижання
         document.body.classList.add('is-dragging-line');
     };
 
     const stopDrag = () => {
+        if (!isDragging) return;
         isDragging = false;
         line.style.opacity = "0.5";
-        line.style.height = "4px";
         document.body.classList.remove('is-dragging-line');
     };
 
-    // Події для мишки
-    line.addEventListener('mousedown', startDrag);
-    // Слухаємо рух на рівні window, щоб не "губити" лінію при швидкому русі
+    // Мишка
+    line.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Запобігає старту виділення тексту
+        startDrag();
+    });
+
+    // Важливо: обробники на window залишаються, щоб не "втрачати" лінію
     window.addEventListener('mousemove', moveLine, { passive: false });
     window.addEventListener('mouseup', stopDrag);
 
-    // Події для сенсорних екранів
+    // Тач
     line.addEventListener('touchstart', (e) => {
+        if (e.cancelable) e.preventDefault();
         startDrag();
     }, { passive: false });
 
     window.addEventListener('touchmove', moveLine, { passive: false });
     window.addEventListener('touchend', stopDrag);
 }
-
 // Збереження налаштувань
 window.updateSetting = (key, val) => {
     const s = JSON.parse(localStorage.getItem('p2026_settings')) || {

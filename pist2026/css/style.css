@@ -218,29 +218,34 @@ body.reading-mode #exitReading { display: block; }
     position: fixed;
     left: 0;
     width: 100%;
+    /* Фіксуємо висоту, щоб вона не мінялася при старті перетягування */
     height: 4px; 
     background: var(--accent);
     box-shadow: 0 0 10px var(--accent);
     opacity: 0.5;
     z-index: 1500;
     cursor: ns-resize;
-    touch-action: none; /* Критично для мобільних */
+    touch-action: none;
+    /* Плавне повернення прозорості */
+    transition: opacity 0.2s, background-color 0.2s;
 }
 
-/* Створюємо ширшу зону для захвату пальцем (псевдоелемент) */
+/* Широка зона захвату залишається */
 #readingLine::after {
     content: "";
     position: absolute;
-    top: -15px;
-    bottom: -15px;
+    top: -20px;
+    bottom: -20px;
     left: 0;
     right: 0;
 }
 
 /* Клас, який JS додаватиме до body під час перетягування */
 body.is-dragging-line {
-    user-select: none; /* Вимикає виділення тексту */
-    overflow: hidden;  /* Забороняє скрол сторінки */
+    /* Замість overflow: hidden використовуємо це, щоб контент не стрибав */
+    overscroll-behavior: none; 
+    user-select: none;
+    -webkit-user-select: none;
 }
 body.reading-mode #readingLine {
     display: block;
