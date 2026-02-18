@@ -1,49 +1,171 @@
 :root {
-    --bg: #ffffff; --card: #f9f9f9; --text: #1a1a1a; --accent: #0056b3;
-    --brd: #e0e0e0; --font-size: 18px; --width: 95%;
+    --bg: #ffffff;
+    --card: #f9f9f9;
+    --text: #1a1a1a;
+    --accent: #0056b3;
+    --brd: #e0e0e0;
+    --font-size: 18px;
+    --width: 95%;
+    /* Додаємо нову змінну для шрифту */
+    --font-family: -apple-system, system-ui, sans-serif;
 }
+
 [data-theme="dark"] {
-    --bg: #121212; --card: #1e1e1e; --text: #efefef; --accent: #5c7cfa; --brd: #333;
+    --bg: #121212;
+    --card: #1e1e1e;
+    --text: #efefef;
+    --accent: #5c7cfa;
+    --brd: #333;
 }
+
 body { 
-    background: var(--bg); color: var(--text); font-size: var(--font-size); 
-    font-family: -apple-system, system-ui, sans-serif; margin: 0; 
+    background: var(--bg); 
+    color: var(--text); 
+    font-size: var(--font-size); 
+    font-family: var(--font-family); /* Використовуємо змінну */
+    margin: 0; 
+    /* Плавний перехід для комфортної зміни налаштувань */
+    transition: background 0.3s, color 0.3s, font-size 0.2s;
 }
+
 .container {
-    /* Використовуємо змінну для ширини, 95% за замовчуванням */
     width: var(--width, 95%); 
-    
-    /* Збільшуємо або прибираємо жорсткий ліміт */
-    max-width: 1200px; 
-    
+    max-width: 1200px; /* Збільшили ліміт, щоб було видно зміну ширини */
     margin: 0 auto;
     padding: 15px;
-    box-sizing: border-box; /* Щоб падінги не роздували ширину понад 100% */
-    transition: width 0.3s ease; /* Додамо плавність при зміні */
+    box-sizing: border-box; 
+    transition: width 0.3s ease; 
 }
 
 /* Картки */
-.name-list { display: flex; flex-direction: column; gap: 6px; margin-top: 15px; }
-.name-item { 
-    padding: 14px; background: var(--card); border: 1px solid var(--brd); border-radius: 8px; 
+.name-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+    margin-top: 15px; 
 }
-.name-item:nth-child(even) { filter: contrast(0.95); }
+
+.name-item { 
+    padding: 14px; 
+    background: var(--card); 
+    border: 1px solid var(--brd); 
+    border-radius: 8px;
+    /* Щоб довгі імена не ламали картку */
+    word-wrap: break-word; 
+}
+
+/* Чергування кольору карток для зручності читання */
+.name-item:nth-child(even) { 
+    filter: brightness(0.97); 
+}
+[data-theme="dark"] .name-item:nth-child(even) {
+    filter: brightness(1.2);
+}
 
 /* Навігація */
-header { margin-bottom: 20px; border-bottom: 1px solid var(--brd); padding-bottom: 10px; }
-.nav-links { display: flex; justify-content: space-between; align-items: center; }
-.btn-back { text-decoration: none; color: var(--accent); font-weight: bold; }
-.status-bar { font-size: 0.75rem; opacity: 0.6; }
+header { 
+    margin-bottom: 20px; 
+    border-bottom: 1px solid var(--brd); 
+    padding-bottom: 10px; 
+}
+.nav-links { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+.btn-back { 
+    text-decoration: none; 
+    color: var(--accent); 
+    font-weight: bold; 
+    padding: 5px 0;
+}
+.status-bar { 
+    font-size: 0.85em; 
+    font-weight: 500;
+    color: var(--accent);
+}
 
 /* Модалка */
-.toolbar-btn { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; border-radius: 50%; background: var(--accent); color: white; border: none; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; }
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+.toolbar-btn { 
+    position: fixed; 
+    bottom: 25px; 
+    right: 25px; 
+    width: 55px; 
+    height: 55px; 
+    border-radius: 50%; 
+    background: var(--accent); 
+    color: white; 
+    border: none; 
+    font-size: 24px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+    cursor: pointer; 
+    z-index: 999;
+}
+
+.modal { 
+    display: none; 
+    position: fixed; 
+    inset: 0; 
+    background: rgba(0,0,0,0.8); 
+    z-index: 1000; 
+    align-items: center; 
+    justify-content: center; 
+    backdrop-filter: blur(3px); /* Легке розмиття фону */
+}
+
 .modal.active { display: flex; }
-.modal-content { background: var(--bg); padding: 25px; border-radius: 15px; width: 85%; max-width: 320px; }
+
+.modal-content { 
+    background: var(--bg); 
+    padding: 25px; 
+    border-radius: 15px; 
+    width: 85%; 
+    max-width: 350px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
 .modal-row { margin-bottom: 20px; }
-.modal-row label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9em; }
-select, input[type="range"] { width: 100%; }
-.btn-close { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; }
+
+.modal-row label { 
+    display: flex; 
+    justify-content: space-between; /* Розносить назву і цифру (px/%) по боках */
+    margin-bottom: 10px; 
+    font-weight: bold; 
+    font-size: 0.9em; 
+}
+
+/* Візуалізація значень поруч із label */
+.modal-row label span {
+    color: var(--accent);
+    font-family: monospace;
+}
+
+select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--brd);
+    background: var(--card);
+    color: var(--text);
+    font-size: 16px;
+}
+
+input[type="range"] { 
+    width: 100%; 
+    accent-color: var(--accent); /* Колір повзунка */
+}
+
+.btn-close { 
+    width: 100%; 
+    padding: 14px; 
+    background: var(--accent); 
+    color: white; 
+    border: none; 
+    border-radius: 8px; 
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer; 
+    margin-top: 10px;
+}
 
 /* Якщо ми на головній, ховаємо кнопку назад */
 [data-page-type="index"] .btn-back {

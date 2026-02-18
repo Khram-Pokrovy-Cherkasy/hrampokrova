@@ -13,14 +13,22 @@
         </div>
 
         <div class="modal-row">
-            <label for="fontSizeRange">Розмір шрифту</label>
-            <input type="range" id="fontSizeRange" min="16" max="32" value="18" oninput="updateSetting('size', this.value + 'px')">
+            <label for="fontTypeSelect">Шрифт</label>
+            <select id="fontTypeSelect" onchange="updateSetting('fontFamily', this.value)">
+                <option value="-apple-system, sans-serif">Системний (без засічок)</option>
+                <option value="'Georgia', serif">Класичний (із засічками)</option>
+                <option value="'Courier New', monospace">Машинописний</option>
+            </select>
         </div>
 
         <div class="modal-row">
-            <label for="widthRange">Ширина контенту</label>
-            <input type="range" id="widthRange" min="50" max="100" step="1"
-                value="95" oninput="updateSetting('width', this.value)">
+            <label for="fontSizeRange">Розмір тексту: <span id="fontVal">18</span>px</label>
+            <input type="range" id="fontSizeRange" min="14" max="36" oninput="updateSetting('size', this.value + 'px')">
+        </div>
+
+        <div class="modal-row">
+            <label for="widthRange">Ширина контенту: <span id="widthVal">95</span>%</label>
+            <input type="range" id="widthRange" min="50" max="100" oninput="updateSetting('width', this.value + '%')">
         </div>
 
         <button class="btn-close" onclick="toggleModal(false)">Готово</button>

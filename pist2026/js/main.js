@@ -75,26 +75,48 @@ function render(data) {
     list.innerHTML = data.items.map(i => `<div class="name-item">${i}</div>`).join('');
 }
 
+// Оновлена функція застосування налаштувань
 function applySettings(s) {
     document.documentElement.setAttribute('data-theme', s.theme);
     document.documentElement.style.setProperty('--font-size', s.size);
+    document.documentElement.style.setProperty('--font-family', s.fontFamily || '-apple-system, sans-serif');
     
-    // Чистимо значення від зайвих відсотків і додаємо один раз
-    const cleanWidth = parseInt(s.width) || 95; 
+    const cleanWidth = parseInt(s.width) || 95;
     document.documentElement.style.setProperty('--width', cleanWidth + '%');
+
+    // Оновлення тексту в інтерфейсі модалки (якщо вона відкрита)
+    const fVal = document.getElementById('fontVal');
+    const wVal = document.getElementById('widthVal');
+    if (fVal) fVal.innerText = parseInt(s.size);
+    if (wVal) wVal.innerText = cleanWidth;
 }
 
+// Оновлена функція збереження
 window.updateSetting = (key, val) => {
-    const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light', size:'18px', width:'95%'};
-    
-    // Якщо ми міняємо ширину, перевіряємо чи є там %
-    if (key === 'width' && !val.includes('%')) val += '%';
+    const s = JSON.parse(localStorage.getItem('p2026_settings')) || {
+        theme: 'light', 
+        size: '18px', 
+        width: '95%', 
+        fontFamily: '-apple-system, sans-serif'
+    };
     
     s[key] = val;
     localStorage.setItem('p2026_settings', JSON.stringify(s));
     applySettings(s);
 };
 
+// Додамо синхронізацію значень у модалці при її відкритті
 window.toggleModal = (show) => {
-    document.getElementById('settingsModal').classList.toggle('active', show);
+    const modal = document.getElementById('settingsModal');
+    if (show) {
+        const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light', size:'18px', width:'95%'};
+        // Встановлюємо положення повзунків згідно зі збереженими даними
+        if(document.getElementById('fontSizeRange')) document.getElementById('fontSizeRange').value = parseInt(s.size);
+        if(document.getElementById('widthRange')) document.getElementById('widthRange').value = parseInt(s.width);
+        if(document.getElementById('themeSelect')) document.getElementById('themeSelect').value = s.theme;
+        if(document.getElementById('fontTypeSelect')) document.getElementById('fontTypeSelect').value = s.fontFamily || '-apple-system, sans-serif';
+        
+        applySettings(s); // Оновити цифри
+    }
+    modal.classList.toggle('active', show);
 };
