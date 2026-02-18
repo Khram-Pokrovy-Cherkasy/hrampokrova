@@ -3,14 +3,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light', size:'18px', width:'95%'};
     applySettings(s);
 
-    // 2. Інклюд компонентів
+    // 2. Інклюд компонентів (працює всюди)
     await includeComponent('header', 'header');
     await includeComponent('toolbar', 'toolbar');
     await includeComponent('footer', 'footer');
 
-    // 3. Завантаження даних
+    // 3. ЗАВАНТАЖЕННЯ ДАНИХ ТІЛЬКИ ЯКЩО МИ НА СТОРІНЦІ СПИСКУ
     const type = document.body.dataset.pageType;
-    if (type && type !== 'index') fetchData(type); // Додайте перевірку !== 'index'
+    
+    // ДОДАЙТЕ ЦЮ ПЕРЕВІРКУ:
+    // Якщо ми на головній (index), нам не треба завантажувати списки імен
+    if (type && type !== 'index') {
+        loadListData(type);
+    }
 });
 
 async function includeComponent(id, name) {
@@ -55,16 +60,22 @@ async function loadListData(type, force = false) {
 
 function render(data) {
     const list = document.getElementById('nameList');
-    document.getElementById('statusMsg').innerHTML = `Всього: ${data.count} <span onclick="loadListData(document.body.dataset.pageType, true)" style="cursor:pointer">🔄</span>`;
+    const status = document.getElementById('statusMsg');
+
+    // Якщо елементів немає на сторінці — нічого не робимо
+    if (!list || !status) return; 
+
+    status.innerHTML = `Всього: ${data.count} <span onclick="loadListData(document.body.dataset.pageType, true)" style="cursor:pointer">🔄</span>`;
     list.innerHTML = data.items.map(i => `<div class="name-item">${i}</div>`).join('');
 }
 
 function applySettings(s) {
     document.documentElement.setAttribute('data-theme', s.theme);
     document.documentElement.style.setProperty('--font-size', s.size);
-    document.documentElement.style.setProperty('--width', s.width);
+    // Додаємо одиниці виміру, якщо їх немає
+    const widthValue = s.width.includes('%') ? s.width : s.width + '%';
+    document.documentElement.style.setProperty('--width', widthValue);
 }
-
 window.updateSetting = (key, val) => {
     const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light', size:'18px', width:'95%'};
     
