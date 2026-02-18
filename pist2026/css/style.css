@@ -25,7 +25,7 @@ body {
     font-family: var(--font-family); /* Використовуємо змінну */
     margin: 0; 
     /* Плавний перехід для комфортної зміни налаштувань */
-    transition: background 0.3s, color 0.3s, font-size 0.2s;
+    transition: background 0.1s, color 0.1s, font-size 0.1s;
 }
 
 .container {
@@ -34,7 +34,7 @@ body {
     margin: 0 auto;
     padding: 15px;
     box-sizing: border-box; 
-    transition: width 0.3s ease; 
+    transition: width 0.1s ease; 
 }
 
 /* Картки */
