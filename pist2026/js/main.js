@@ -5,11 +5,9 @@
 // Режим читання
 window.toggleReadingMode = () => {
     document.body.classList.toggle('reading-mode');
-    
-    // Закриваємо модалку через глобальну функцію
     if (window.toggleModal) window.toggleModal(false);
 
-    // Створюємо кнопку виходу, якщо її ще немає
+    // 1. Створюємо кнопку виходу
     if (!document.getElementById('exitReading')) {
         const btn = document.createElement('button');
         btn.id = 'exitReading';
@@ -17,7 +15,42 @@ window.toggleReadingMode = () => {
         btn.onclick = () => document.body.classList.remove('reading-mode');
         document.body.appendChild(btn);
     }
+
+    // 2. Створюємо лінію-закладку
+    let line = document.getElementById('readingLine');
+    if (!line) {
+        line = document.createElement('div');
+        line.id = 'readingLine';
+        line.style.top = '50%'; // Початкова позиція по центру
+        document.body.appendChild(line);
+        initLineDrag(line);
+    }
 };
+
+// Функція для перетягування лінії
+function initLineDrag(line) {
+    let isDragging = false;
+
+    const moveLine = (e) => {
+        if (!isDragging) return;
+        // Отримуємо Y координату (враховуємо і мишку, і тач)
+        const y = e.touches ? e.touches[0].clientY : e.clientY;
+        line.style.top = `${y}px`;
+    };
+
+    const startDrag = () => { isDragging = true; line.style.opacity = "0.8"; };
+    const stopDrag = () => { isDragging = false; line.style.opacity = "0.5"; };
+
+    // Події для мишки
+    line.addEventListener('mousedown', startDrag);
+    window.addEventListener('mousemove', moveLine);
+    window.addEventListener('mouseup', stopDrag);
+
+    // Події для сенсорних екранів
+    line.addEventListener('touchstart', startDrag);
+    window.addEventListener('touchmove', moveLine, { passive: false });
+    window.addEventListener('touchend', stopDrag);
+}
 
 // Збереження налаштувань
 window.updateSetting = (key, val) => {
