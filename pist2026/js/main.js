@@ -55,7 +55,11 @@ async function loadListData(type, force = false) {
         const data = await res.json();
         localStorage.setItem(cacheKey, JSON.stringify({time: Date.now(), data}));
         render(data);
-    } catch (e) { document.getElementById('statusMsg').innerText = "Помилка оновлення"; }
+    } catch (e) { 
+        const statusEl = document.getElementById('statusMsg');
+        if (statusEl) statusEl.innerText = "Помилка оновлення"; 
+        console.error("Помилка завантаження:", e);
+    }
 }
 
 function render(data) {
