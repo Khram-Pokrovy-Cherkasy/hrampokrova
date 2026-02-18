@@ -1,8 +1,35 @@
 /**
- * ГЛОБАЛЬНІ ФУНКЦІЇ (Оголошуємо ВІДРАЗУ)
+ * ГЛОБАЛЬНІ ФУНКЦІЇ (Доступні всюди)
  */
 
-// 1. Фонове завантаження (Prefetch)
+// 1. Керування модальним вікном (Налаштування)
+window.toggleModal = function(show) {
+    const modal = document.getElementById('settingsModal');
+    if (!modal) return;
+    
+    if (show) {
+        const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light', size:'18px', width:'95%'};
+        // Синхронізуємо елементи форми з даними в пам'яті
+        if(document.getElementById('fontSizeRange')) document.getElementById('fontSizeRange').value = parseInt(s.size);
+        if(document.getElementById('widthRange')) document.getElementById('widthRange').value = parseInt(s.width);
+        if(document.getElementById('themeSelect')) document.getElementById('themeSelect').value = s.theme;
+        if(document.getElementById('fontTypeSelect')) document.getElementById('fontTypeSelect').value = s.fontFamily || '-apple-system, sans-serif';
+        applySettings(s);
+    }
+    modal.classList.toggle('active', show);
+};
+
+// 2. Оновлення налаштувань користувача
+window.updateSetting = function(key, val) {
+    const s = JSON.parse(localStorage.getItem('p2026_settings')) || {
+        theme: 'light', size: '18px', width: '95%', fontFamily: '-apple-system, sans-serif'
+    };
+    s[key] = val;
+    localStorage.setItem('p2026_settings', JSON.stringify(s));
+    applySettings(s);
+};
+
+// 3. Фонове завантаження (Prefetch)
 window.prefetchData = async function(type) {
     const cacheKey = `data_${type}`;
     const cached = localStorage.getItem(cacheKey);
@@ -16,7 +43,7 @@ window.prefetchData = async function(type) {
     } catch (e) { console.warn("Prefetch failed"); }
 };
 
-// 2. Режим читання
+// 4. Режим читання
 window.toggleReadingMode = function() {
     document.body.classList.toggle('reading-mode');
     if (window.toggleModal) window.toggleModal(false);
@@ -42,7 +69,7 @@ window.toggleReadingMode = function() {
     }
 };
 
-// 3. Завантаження даних для списку
+// 5. Завантаження даних для списку імен
 window.loadListData = async function(type, force = false) {
     const statusEl = document.getElementById('statusMsg');
     const cacheKey = `data_${type}`;
@@ -63,7 +90,7 @@ window.loadListData = async function(type, force = false) {
 };
 
 /**
- * ДОПОМІЖНІ ФУНКЦІЇ
+ * ДОПОМІЖНІ ФУНКЦІЇ (Внутрішні)
  */
 
 function initLineDrag(line) {
@@ -90,29 +117,32 @@ function render(data) {
     const list = document.getElementById('nameList');
     const status = document.getElementById('statusMsg');
     if (!list || !status) return; 
-    status.innerHTML = `Всього: ${data.count} <span onclick="window.loadListData(document.body.dataset.pageType, true)" style="cursor:pointer; margin-left:8px">🔄</span>`;
+
+    status.innerHTML = `Всього: ${data.count} <span onclick="window.loadListData(document.body.dataset.pageType, true)" style="cursor:pointer; margin-left:8px" title="Оновити дані">🔄</span>`;
     list.innerHTML = data.items && data.items.length > 0 
         ? data.items.map(i => `<div class="name-item">${i}</div>`).join('')
         : `<div style="text-align:center; padding:20px; opacity:0.5">Список порожній</div>`;
 }
 
 /**
- * ОСНОВНИЙ ЦИКЛ (DOMContentLoaded)
+ * ОСНОВНИЙ ЦИКЛ (Ініціалізація)
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Завантаження налаштувань
     const s = JSON.parse(localStorage.getItem('p2026_settings')) || { theme: 'light', size: '18px', width: '95%' };
     applySettings(s);
 
+    // 2. Вставка компонентів
     await includeComponent('header', 'header');
     await includeComponent('toolbar', 'toolbar');
     await includeComponent('footer', 'footer');
 
+    // 3. Завантаження даних або прогрів кешу
     const type = document.body.dataset.pageType;
     if (type && type !== 'index') {
         window.loadListData(type);
     } else if (type === 'index') {
-        // Тепер prefetchData точно визначена у window
         setTimeout(() => { 
             window.prefetchData('health'); 
             window.prefetchData('repose'); 
@@ -121,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /**
- * СИСТЕМНІ ФУНКЦІЇ
+ * СИСТЕМНІ ФУНКЦІЇ (Утиліти)
  */
 
 async function includeComponent(id, name) {
@@ -131,13 +161,19 @@ async function includeComponent(id, name) {
     const prefix = isSubFolder ? '../components/' : 'components/';
     try {
         const res = await fetch(`${prefix}${name}.html`);
+        if (!res.ok) throw new Error();
         el.innerHTML = await res.text();
         
+        // Спеціальна обробка для кнопок у тулбарі (Chrome Fix)
         if(name === 'toolbar') {
             const readBtn = el.querySelector('button[onclick*="toggleReadingMode"]');
             if (readBtn) {
                 readBtn.onclick = function(e) { e.preventDefault(); window.toggleReadingMode(); };
             }
+            // Синхронізація теми в селекті
+            const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light'};
+            const ts = document.getElementById('themeSelect');
+            if(ts) ts.value = s.theme;
         }
     } catch (e) { console.error('Error loading component:', name); }
 }
@@ -146,15 +182,24 @@ function applySettings(s) {
     document.documentElement.setAttribute('data-theme', s.theme);
     document.documentElement.style.setProperty('--font-size', s.size);
     document.documentElement.style.setProperty('--width', (parseInt(s.width) || 95) + '%');
+    
+    // Оновлення текстових індикаторів у модалці
     const fVal = document.getElementById('fontVal'), wVal = document.getElementById('widthVal');
     if (fVal) fVal.innerText = parseInt(s.size);
     if (wVal) wVal.innerText = parseInt(s.width);
 }
 
-// Делегування для Chrome (для кнопок, що можуть не спрацювати)
+/**
+ * ДЕЛЕГУВАННЯ ПОДІЙ (Остання лінія оборони для Chrome)
+ */
 document.addEventListener('click', function (e) {
-    if (e.target && e.target.getAttribute('onclick') === 'toggleReadingMode()') {
+    const attr = e.target.getAttribute('onclick');
+    if (attr && attr.includes('toggleReadingMode()')) {
         e.preventDefault();
         window.toggleReadingMode();
+    }
+    if (attr && attr.includes('toggleModal(true)')) {
+        e.preventDefault();
+        window.toggleModal(true);
     }
 }, true);
