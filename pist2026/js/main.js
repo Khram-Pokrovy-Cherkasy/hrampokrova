@@ -58,23 +58,45 @@ window.toggleReadingMode = function() {
         initLineDrag(line);
     }
 };
+
 window.loadListData = async function(type, force = false) {
     const statusEl = document.getElementById('statusMsg');
     const cacheKey = `data_${type}`;
     const cached = localStorage.getItem(cacheKey);
     
-    if (!force && cached) {
+    // Перевіряємо наявність кешу перед запитом
+    let cachedData = null;
+    if (cached) {
         const p = JSON.parse(cached);
-        if (Date.now() - p.time < 300000) return render(p.data);
+        cachedData = p.data;
+        // Якщо кеш свіжий (менше 5 хв) і ми не тиснули "Оновити", показуємо відразу
+        if (!force && (Date.now() - p.time < 300000)) {
+            return render(cachedData);
+        }
     }
 
     if (statusEl) statusEl.innerText = "Оновлення...";
+
     try {
         const res = await fetch(`${API_URL}?type=${type}${force ? '&t='+Date.now() : ''}`);
+        if (!res.ok) throw new Error("Server error");
         const data = await res.json();
+        
+        // Зберігаємо нові дані
         localStorage.setItem(cacheKey, JSON.stringify({time: Date.now(), data}));
         render(data);
-    } catch (e) { if (statusEl) statusEl.innerText = "Помилка зв'язку"; }
+    } catch (e) { 
+        console.error("API Unavailable:", e);
+        if (statusEl) {
+            // Якщо сервер впав, але у нас є хоч якийсь кеш — показуємо його
+            if (cachedData) {
+                statusEl.innerHTML = `⚠️ Офлайн режим (архів) <span onclick="window.loadListData('${type}', true)" style="cursor:pointer; margin-left:8px">🔄</span>`;
+                render(cachedData);
+            } else {
+                statusEl.innerText = "Помилка зв'язку (дані відсутні)";
+            }
+        }
+    }
 };
 
 window.prefetchData = async function(type) {
