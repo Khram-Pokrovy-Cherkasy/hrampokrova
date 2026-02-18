@@ -1,27 +1,28 @@
 <!DOCTYPE html>
-<html lang="uk" data-type="health">
+<html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>За здоров’я 2026</title>
-  <link rel="stylesheet" href="../css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="robots" content="noindex">
+    <title>За Здоров'я | Поминання</title>
+    <link rel="stylesheet" href="../css/style.css">
 </head>
-<body data-type="health">
-  <div id="header"></div>
-  <div id="toolbar"></div>
-  <main>
-    <div id="data"></div>
-  </main>
-  <div id="footer"></div>
+<body data-page-type="health">
+    <div class="container">
+        <div id="header"></div>
+        
+        <main>
+            <h2 style="text-align:center">За Здоров'я</h2>
+            <div id="nameList" class="name-list">
+                </div>
+        </main>
 
-  <script src="../components/api-url.js"></script>
-  <script src="../js/main.js"></script>
-  <script>
-    ['header','toolbar','footer'].forEach(id=>{
-      fetch(`../components/${id}.html`).then(r=>r.text()).then(t=>{
-        document.getElementById(id).innerHTML = t;
-      });
-    });
-  </script>
+        <div id="footer"></div>
+    </div>
+
+    <div id="toolbar"></div>
+
+    <script src="../components/api-url.js"></script>
+    <script src="../js/main.js"></script>
 </body>
 </html>

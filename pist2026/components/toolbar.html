@@ -1,16 +1,27 @@
-<div class="toolbar">
-  <button onclick="fontStep(-20)">A--</button>
-  <button onclick="fontStep(-10)">A-</button>
-  <button onclick="fontStep(0)">A</button>
-  <button onclick="fontStep(10)">A+</button>
-  <button onclick="fontStep(20)">A++</button>
+<button class="toolbar-btn" onclick="toggleModal(true)" aria-label="Налаштування">⚙️</button>
 
-  <select onchange="setFont(this.value)">
-    <option value="system-ui">Системний</option>
-    <option value="serif">Serif</option>
-    <option value="sans-serif">Sans</option>
-    <option value="monospace">Mono</option>
-  </select>
+<div id="settingsModal" class="modal" onclick="if(event.target==this)toggleModal(false)">
+    <div class="modal-content">
+        <h3>Налаштування</h3>
+        
+        <div class="modal-row">
+            <label>Тема оформлення</label>
+            <select id="themeSelect" onchange="updateSetting('theme', this.value)">
+                <option value="light">Світла (Денна)</option>
+                <option value="dark">Темна (Нічна)</option>
+            </select>
+        </div>
 
-  <button onclick="toggleTheme()">🌙/☀️ Тема</button>
+        <div class="modal-row">
+            <label>Розмір шрифту</label>
+            <input type="range" min="16" max="32" value="18" oninput="updateSetting('size', this.value + 'px')">
+        </div>
+
+        <div class="modal-row">
+            <label>Ширина тексту (%)</label>
+            <input type="range" min="70" max="100" value="95" oninput="updateSetting('width', this.value + '%')">
+        </div>
+
+        <button class="btn-close" onclick="toggleModal(false)">Готово</button>
+    </div>
 </div>

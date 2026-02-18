@@ -1,34 +1,84 @@
 <!DOCTYPE html>
-<html lang="uk" data-type="all">
+<html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Пам’ятний список 2026</title>
-  <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Поминання 2026 | Храм Покрова</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Специфічні стилі для головного меню */
+        .menu-grid {
+            display: grid;
+            gap: 20px;
+            margin: 40px 0;
+        }
+        .menu-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: var(--card);
+            border: 1px solid var(--brd);
+            border-radius: 15px;
+            text-decoration: none;
+            color: var(--text);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .menu-card:active {
+            transform: scale(0.98);
+        }
+        .menu-card h2 {
+            margin: 0;
+            color: var(--accent);
+        }
+        .menu-card p {
+            margin: 10px 0 0;
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+        /* Коригування шляхів для головної сторінки (бо компоненти лежать поруч) */
+        #header .btn-back { display: none; } /* На головній кнопка "назад" не потрібна */
+    </style>
 </head>
-<body data-type="all">
-  <!-- header -->
-  <div id="header"></div>
+<body data-page-type="index">
 
-  <!-- toolbar -->
-  <div id="toolbar"></div>
+    <div class="container">
+        <div id="header"></div>
+        
+        <main>
+            <div style="text-align: center; margin-top: 20px;">
+                <h1>Списки для поминання</h1>
+                <p>Оберіть потрібний розділ для читання імен</p>
+            </div>
 
-  <main>
-    <div id="data"></div>
-  </main>
+            <div class="menu-grid">
+                <a href="za-zdorovya/" class="menu-card">
+                    <h2>За Здоров'я</h2>
+                    <p>Список поданих імен за здоров'я близьких</p>
+                </a>
 
-  <!-- footer -->
-  <div id="footer"></div>
+                <a href="za-spokiy/" class="menu-card">
+                    <h2>За Спокій</h2>
+                    <p>Список поданих імен за упокій спочилих</p>
+                </a>
+            </div>
+        </main>
 
-  <script src="components/api-url.js"></script>
-  <script src="js/main.js"></script>
-  <script>
-    // Динамічне підключення компонентів
-    ['header','toolbar','footer'].forEach(id=>{
-      fetch(`components/${id}.html`).then(r=>r.text()).then(t=>{
-        document.getElementById(id).innerHTML = t;
-      });
-    });
-  </script>
+        <div id="footer"></div>
+    </div>
+
+    <div id="toolbar"></div>
+
+    <script src="components/api-url.js"></script>
+    <script>
+        /* Оскільки index.html лежить рівнем вище, ніж сторінки в папках, 
+           нам потрібно трохи підправити функцію завантаження компонентів 
+           саме для цього файлу.
+        */
+        window.componentPathPrefix = "components/";
+    </script>
+    <script src="js/main.js"></script>
 </body>
 </html>
