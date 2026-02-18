@@ -18,8 +18,9 @@
         </div>
 
         <div class="modal-row">
-            <label for="widthRange">Ширина тексту (%)</label>
-            <input type="range" id="widthRange" min="70" max="100" value="95" oninput="updateSetting('width', this.value + '%')">
+            <label for="widthRange">Ширина контенту</label>
+            <input type="range" id="widthRange" min="50" max="100" step="1"
+                value="95" oninput="updateSetting('width', this.value)">
         </div>
 
         <button class="btn-close" onclick="toggleModal(false)">Готово</button>

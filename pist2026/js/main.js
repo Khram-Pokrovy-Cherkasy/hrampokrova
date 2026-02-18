@@ -78,10 +78,12 @@ function render(data) {
 function applySettings(s) {
     document.documentElement.setAttribute('data-theme', s.theme);
     document.documentElement.style.setProperty('--font-size', s.size);
-    // Додаємо одиниці виміру, якщо їх немає
-    const widthValue = s.width.includes('%') ? s.width : s.width + '%';
-    document.documentElement.style.setProperty('--width', widthValue);
+    
+    // Чистимо значення від зайвих відсотків і додаємо один раз
+    const cleanWidth = parseInt(s.width) || 95; 
+    document.documentElement.style.setProperty('--width', cleanWidth + '%');
 }
+
 window.updateSetting = (key, val) => {
     const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light', size:'18px', width:'95%'};
     

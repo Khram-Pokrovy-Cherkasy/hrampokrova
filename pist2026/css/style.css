@@ -9,7 +9,18 @@ body {
     background: var(--bg); color: var(--text); font-size: var(--font-size); 
     font-family: -apple-system, system-ui, sans-serif; margin: 0; 
 }
-.container { width: var(--width, 95%); max-width: 800px; margin: 0 auto; padding: 15px; }
+.container {
+    /* Використовуємо змінну для ширини, 95% за замовчуванням */
+    width: var(--width, 95%); 
+    
+    /* Збільшуємо або прибираємо жорсткий ліміт */
+    max-width: 1200px; 
+    
+    margin: 0 auto;
+    padding: 15px;
+    box-sizing: border-box; /* Щоб падінги не роздували ширину понад 100% */
+    transition: width 0.3s ease; /* Додамо плавність при зміні */
+}
 
 /* Картки */
 .name-list { display: flex; flex-direction: column; gap: 6px; margin-top: 15px; }
