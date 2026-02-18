@@ -27,13 +27,17 @@ window.updateSetting = function(key, val) {
 };
 
 window.toggleReadingMode = function() {
-    console.log("Reading mode active");
-    document.body.classList.toggle('reading-mode');
+    // Якщо клас вже є, нічого не робимо (або виходимо), 
+    // але краще просто залишити toggle, якщо ми прибрали подвійний виклик.
+    if (document.body.classList.contains('reading-mode')) {
+        console.log("Reading mode already active");
+        return; 
+    }
     
-    // Закриваємо модалку через window
+    document.body.classList.add('reading-mode');
     window.toggleModal(false);
 
-    // Кнопка виходу
+    // Створення кнопки виходу (якщо немає)
     if (!document.getElementById('exitReading')) {
         const btn = document.createElement('button');
         btn.id = 'exitReading';
@@ -46,16 +50,14 @@ window.toggleReadingMode = function() {
     }
 
     // Лінія-закладка
-    let line = document.getElementById('readingLine');
-    if (!line) {
-        line = document.createElement('div');
+    if (!document.getElementById('readingLine')) {
+        const line = document.createElement('div');
         line.id = 'readingLine';
         line.style.top = '50%';
         document.body.appendChild(line);
         initLineDrag(line);
     }
 };
-
 window.loadListData = async function(type, force = false) {
     const statusEl = document.getElementById('statusMsg');
     const cacheKey = `data_${type}`;
@@ -128,6 +130,13 @@ async function includeComponent(id, name) {
     try {
         const res = await fetch(`${prefix}${name}.html`);
         el.innerHTML = await res.text();
+        
+        // Залишаємо тільки синхронізацію теми
+        if(name === 'toolbar') {
+            const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light'};
+            const ts = document.getElementById('themeSelect');
+            if(ts) ts.value = s.theme;
+        }
     } catch (e) { console.error('Error component:', name); }
 }
 
@@ -164,14 +173,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Глобальний слухач кліків (для Chrome та динамічного контенту)
 document.addEventListener('click', function (e) {
-    // Шукаємо найближчу кнопку або елемент з атрибутом onclick
     const target = e.target.closest('[onclick]');
     if (!target) return;
 
     const attr = target.getAttribute('onclick');
     
+    // Перевіряємо, чи це наші функції
     if (attr.includes('toggleReadingMode()')) {
         e.preventDefault();
+        e.stopImmediatePropagation(); // Зупиняємо дублювання
         window.toggleReadingMode();
     } else if (attr.includes('toggleModal(true)')) {
         e.preventDefault();
