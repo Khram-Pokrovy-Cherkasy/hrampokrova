@@ -10,25 +10,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3. Завантаження даних
     const type = document.body.dataset.pageType;
-    if (type) loadListData(type);
+    if (type && type !== 'index') fetchData(type); // Додайте перевірку !== 'index'
 });
 
 async function includeComponent(id, name) {
     const el = document.getElementById(id);
     if (!el) return;
     
-    // Визначаємо шлях: якщо ми в підпапці, йдемо на рівень вище, якщо ні - беремо з поточної
-    const prefix = window.location.pathname.includes('za-') ? '../components/' : 'components/';
+    // Більш надійна перевірка: якщо ми НЕ в корені /pist2026/
+    const isSubFolder = window.location.pathname.includes('/za-zdorovya/') || window.location.pathname.includes('/za-spokiy/');
+    const prefix = isSubFolder ? '../components/' : 'components/';
     
     try {
         const res = await fetch(`${prefix}${name}.html`);
+        if (!res.ok) throw new Error();
         el.innerHTML = await res.text();
+        
         if(name === 'toolbar') {
-            const theme = document.documentElement.getAttribute('data-theme') || 'light';
-            const select = document.getElementById('themeSelect');
-            if(select) select.value = theme;
+            const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light', size:'18px', width:'95%'};
+            const themeSelect = document.getElementById('themeSelect');
+            if(themeSelect) themeSelect.value = s.theme;
         }
-    } catch (e) { console.error('Error loading component:', name); }
+    } catch (e) { 
+        console.error('Компонент не знайдено:', name); 
+    }
 }
 
 async function loadListData(type, force = false) {
@@ -62,6 +67,10 @@ function applySettings(s) {
 
 window.updateSetting = (key, val) => {
     const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light', size:'18px', width:'95%'};
+    
+    // Якщо ми міняємо ширину, перевіряємо чи є там %
+    if (key === 'width' && !val.includes('%')) val += '%';
+    
     s[key] = val;
     localStorage.setItem('p2026_settings', JSON.stringify(s));
     applySettings(s);
