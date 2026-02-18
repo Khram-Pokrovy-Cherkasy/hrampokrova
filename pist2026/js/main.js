@@ -90,8 +90,8 @@ window.loadListData = async function(type, force = false) {
         if (statusEl) {
             // Якщо сервер впав, але у нас є хоч якийсь кеш — показуємо його
             if (cachedData) {
-                statusEl.innerHTML = `⚠️ Офлайн режим (архів) <span onclick="window.loadListData('${type}', true)" style="cursor:pointer; margin-left:8px">🔄</span>`;
-                render(cachedData);
+                // Викликаємо render, але передаємо true для параметра isOffline
+                render(cachedData, true);
             } else {
                 statusEl.innerText = "Помилка зв'язку (дані відсутні)";
             }
@@ -134,16 +134,24 @@ function initLineDrag(line) {
     window.addEventListener('touchend', stopDrag);
 }
 
-function render(data) {
+function render(data, isOffline = false) {
     const list = document.getElementById('nameList');
     const status = document.getElementById('statusMsg');
     if (!list || !status) return; 
-    status.innerHTML = `Всього: ${data.count} <span onclick="window.loadListData(document.body.dataset.pageType, true)" style="cursor:pointer; margin-left:8px">🔄</span>`;
-    list.innerHTML = data.items && data.items.length > 0 
-        ? data.items.map(i => `<div class="name-item">${i}</div>`).join('')
-        : `<div style="text-align:center; padding:20px; opacity:0.5">Список порожній</div>`;
-}
 
+    const type = document.body.dataset.pageType;
+    
+    // Формуємо текст статусу залежно від режиму
+    let statusText = isOffline ? `⚠️ Офлайн режим (архів)` : `Всього: ${data.count}`;
+    
+    status.innerHTML = `${statusText} <span onclick="window.loadListData('${type}', true)" style="cursor:pointer; margin-left:8px" title="Оновити дані">🔄</span>`;
+    
+    if (data.items && data.items.length > 0) {
+        list.innerHTML = data.items.map(i => `<div class="name-item">${i}</div>`).join('');
+    } else {
+        list.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.5">Список порожній</div>`;
+    }
+}
 async function includeComponent(id, name) {
     const el = document.getElementById(id);
     if (!el) return;
