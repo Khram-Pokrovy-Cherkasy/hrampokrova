@@ -1,4 +1,17 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    function toggleReadingMode() {
+    document.body.classList.toggle('reading-mode');
+    toggleModal(false); // закриваємо налаштування
+
+    // Створюємо кнопку виходу, якщо її ще немає
+    if (!document.getElementById('exitReading')) {
+        const btn = document.createElement('button');
+        btn.id = 'exitReading';
+        btn.innerText = 'Вийти з режиму читання ✕';
+        btn.onclick = () => document.body.classList.remove('reading-mode');
+        document.body.appendChild(btn);
+    }
+}
     // 1. Завантаження та застосування налаштувань
     const s = JSON.parse(localStorage.getItem('p2026_settings')) || {
         theme: 'light', 
