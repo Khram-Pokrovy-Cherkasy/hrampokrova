@@ -11,13 +11,33 @@
     {
       "src": "https://hrampokrova.pp.ua/android-chrome-512x512.png",
       "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "https://hrampokrova.pp.ua/android-chrome-512x512.png",
+      "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "https://hrampokrova.pp.ua/android-chrome-192x192.png",
       "type": "image/png",
       "sizes": "192x192"
+    }
+  ],
+  "screenshots": [
+  {
+      "src": "/pist2026/img/screenshot-desktop.png",
+      "sizes": "2252x1136",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Головний екран пом'янника"
+    },
+    {
+      "src": "/pist2026/img/screenshot-mobile.png",
+      "sizes": "458x992",
+      "type": "image/png",
+      "label": "Список імен у режимі читання"
     }
   ]
 }
