@@ -33,21 +33,46 @@ function initLineDrag(line) {
 
     const moveLine = (e) => {
         if (!isDragging) return;
-        // Отримуємо Y координату (враховуємо і мишку, і тач)
+        
+        // Зупиняємо будь-які інші дії браузера (важливо для мобільних)
+        if (e.cancelable) e.preventDefault();
+
+        // Отримуємо Y координату
         const y = e.touches ? e.touches[0].clientY : e.clientY;
-        line.style.top = `${y}px`;
+        
+        // Обмежуємо рух лініі, щоб вона не виходила за межі видимого екрана
+        const minY = 20; // запас зверху
+        const maxY = window.innerHeight - 20; // запас знизу
+        
+        const constrainedY = Math.max(minY, Math.min(y, maxY));
+        line.style.top = `${constrainedY}px`;
     };
 
-    const startDrag = () => { isDragging = true; line.style.opacity = "0.8"; };
-    const stopDrag = () => { isDragging = false; line.style.opacity = "0.5"; };
+    const startDrag = (e) => {
+        isDragging = true;
+        line.style.opacity = "0.9";
+        line.style.height = "6px"; // трохи потовщуємо при русі
+        document.body.classList.add('is-dragging-line');
+    };
+
+    const stopDrag = () => {
+        isDragging = false;
+        line.style.opacity = "0.5";
+        line.style.height = "4px";
+        document.body.classList.remove('is-dragging-line');
+    };
 
     // Події для мишки
     line.addEventListener('mousedown', startDrag);
-    window.addEventListener('mousemove', moveLine);
+    // Слухаємо рух на рівні window, щоб не "губити" лінію при швидкому русі
+    window.addEventListener('mousemove', moveLine, { passive: false });
     window.addEventListener('mouseup', stopDrag);
 
     // Події для сенсорних екранів
-    line.addEventListener('touchstart', startDrag);
+    line.addEventListener('touchstart', (e) => {
+        startDrag();
+    }, { passive: false });
+
     window.addEventListener('touchmove', moveLine, { passive: false });
     window.addEventListener('touchend', stopDrag);
 }
