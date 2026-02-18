@@ -5,21 +5,21 @@
         <h3>Налаштування</h3>
         
         <div class="modal-row">
-            <label>Тема оформлення</label>
+            <label for="themeSelect">Тема оформлення</label>
             <select id="themeSelect" onchange="updateSetting('theme', this.value)">
-                <option value="light">Світла (Денна)</option>
-                <option value="dark">Темна (Нічна)</option>
+                <option value="light">Світла</option>
+                <option value="dark">Темна</option>
             </select>
         </div>
 
         <div class="modal-row">
-            <label>Розмір шрифту</label>
-            <input type="range" min="16" max="32" value="18" oninput="updateSetting('size', this.value + 'px')">
+            <label for="fontSizeRange">Розмір шрифту</label>
+            <input type="range" id="fontSizeRange" min="16" max="32" value="18" oninput="updateSetting('size', this.value + 'px')">
         </div>
 
         <div class="modal-row">
-            <label>Ширина тексту (%)</label>
-            <input type="range" min="70" max="100" value="95" oninput="updateSetting('width', this.value + '%')">
+            <label for="widthRange">Ширина тексту (%)</label>
+            <input type="range" id="widthRange" min="70" max="100" value="95" oninput="updateSetting('width', this.value + '%')">
         </div>
 
         <button class="btn-close" onclick="toggleModal(false)">Готово</button>
