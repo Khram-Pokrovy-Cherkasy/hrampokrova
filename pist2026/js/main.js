@@ -42,6 +42,9 @@ async function includeComponent(id, name) {
 }
 
 async function loadListData(type, force = false) {
+    const statusEl = document.getElementById('statusMsg');
+    if (statusEl) statusEl.innerText = "Оновлення..."; // Показуємо статус тільки при старті завантаження
+
     const cacheKey = `data_${type}`;
     const cached = localStorage.getItem(cacheKey);
     
@@ -56,7 +59,6 @@ async function loadListData(type, force = false) {
         localStorage.setItem(cacheKey, JSON.stringify({time: Date.now(), data}));
         render(data);
     } catch (e) { 
-        const statusEl = document.getElementById('statusMsg');
         if (statusEl) statusEl.innerText = "Помилка оновлення"; 
         console.error("Помилка завантаження:", e);
     }
