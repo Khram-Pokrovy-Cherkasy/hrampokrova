@@ -22,6 +22,13 @@ window.toggleModal = function(show) {
         if(document.getElementById('themeSelect')) document.getElementById('themeSelect').value = s.theme;
         if(document.getElementById('fontTypeSelect')) document.getElementById('fontTypeSelect').value = s.fontFamily;
         applySettings(s);
+
+        // НОВЕ: Закриваємо при кліку на фон (оверлей), але не на контент
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                window.toggleModal(false);
+            }
+        };
     }
     modal.classList.toggle('active', show);
 };
@@ -182,7 +189,9 @@ async function includeComponent(id, name) {
 function applySettings(s) {
     document.documentElement.setAttribute('data-theme', s.theme);
     document.documentElement.style.setProperty('--font-size', s.size);
-    document.documentElement.style.setProperty('--font-family', s.fontFamily || '-apple-system, sans-serif');
+    // Використовуємо лапки для назв шрифтів з пробілами
+    const family = s.fontFamily.includes(',') ? s.fontFamily : `'${s.fontFamily}', sans-serif`;
+    document.documentElement.style.setProperty('--font-family', family);
     document.documentElement.style.setProperty('--width', (parseInt(s.width) || 95) + '%');
     
     const fVal = document.getElementById('fontVal'), wVal = document.getElementById('widthVal');
@@ -212,15 +221,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Глобальний слухач кліків (для Chrome та динамічного контенту)
 document.addEventListener('click', function (e) {
+    // 1. Якщо ми клікнули всередині .modal-content, нічого не робимо (це наші налаштування)
+    if (e.target.closest('.modal-content')) {
+        return; 
+    }
+
     const target = e.target.closest('[onclick]');
     if (!target) return;
 
     const attr = target.getAttribute('onclick');
     
-    // Перевіряємо, чи це наші функції
+    // 2. Перевіряємо наші функції
     if (attr.includes('toggleReadingMode()')) {
         e.preventDefault();
-        e.stopImmediatePropagation(); // Зупиняємо дублювання
+        e.stopImmediatePropagation();
         window.toggleReadingMode();
     } else if (attr.includes('toggleModal(true)')) {
         e.preventDefault();
