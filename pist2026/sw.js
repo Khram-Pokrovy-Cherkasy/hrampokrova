@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hram-v3'; // Нова версія для примусового оновлення
+const CACHE_NAME = 'hram-v4'; // Нова версія для примусового оновлення
 
 const ASSETS = [
   '/pist2026/',

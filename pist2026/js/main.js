@@ -1,9 +1,12 @@
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        // Реєструємо воркер, вказуючи повний шлях до файлу і scope
         navigator.serviceWorker.register('/pist2026/sw.js', { scope: '/pist2026/' })
-            .then(reg => console.log('SW зареєстровано для папки /pist2026/'))
-            .catch(err => console.log('Помилка реєстрації SW:', err));
+            .then(reg => {
+                console.log('SW зареєстровано');
+                // НОВЕ: Перевіряємо оновлення при кожному завантаженні
+                reg.update(); 
+            })
+            .catch(err => console.log('Помилка SW:', err));
     });
 }
 
