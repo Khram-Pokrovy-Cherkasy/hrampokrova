@@ -3,8 +3,7 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/pist2026/sw.js', { scope: '/pist2026/' })
             .then(reg => {
                 console.log('SW зареєстровано');
-                // НОВЕ: Перевіряємо оновлення при кожному завантаженні
-                reg.update(); 
+                reg.update();
             })
             .catch(err => console.log('Помилка SW:', err));
     });
@@ -17,7 +16,7 @@ if ('serviceWorker' in navigator) {
 window.toggleModal = function(show) {
     const modal = document.getElementById('settingsModal');
     if (!modal) return;
-    
+
     if (show) {
         const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light', size:'18px', width:'95%', fontFamily: '-apple-system, sans-serif'};
         if(document.getElementById('fontSizeRange')) document.getElementById('fontSizeRange').value = parseInt(s.size);
@@ -26,7 +25,6 @@ window.toggleModal = function(show) {
         if(document.getElementById('fontTypeSelect')) document.getElementById('fontTypeSelect').value = s.fontFamily;
         applySettings(s);
 
-        // НОВЕ: Закриваємо при кліку на фон (оверлей), але не на контент
         modal.onclick = function(e) {
             if (e.target === modal) {
                 window.toggleModal(false);
@@ -46,17 +44,14 @@ window.updateSetting = function(key, val) {
 };
 
 window.toggleReadingMode = function() {
-    // Якщо клас вже є, нічого не робимо (або виходимо), 
-    // але краще просто залишити toggle, якщо ми прибрали подвійний виклик.
     if (document.body.classList.contains('reading-mode')) {
         console.log("Reading mode already active");
-        return; 
+        return;
     }
-    
+
     document.body.classList.add('reading-mode');
     window.toggleModal(false);
 
-    // Створення кнопки виходу (якщо немає)
     if (!document.getElementById('exitReading')) {
         const btn = document.createElement('button');
         btn.id = 'exitReading';
@@ -68,7 +63,6 @@ window.toggleReadingMode = function() {
         document.body.appendChild(btn);
     }
 
-    // Лінія-закладка
     if (!document.getElementById('readingLine')) {
         const line = document.createElement('div');
         line.id = 'readingLine';
@@ -82,15 +76,18 @@ window.loadListData = async function(type, force = false) {
     const statusEl = document.getElementById('statusMsg');
     const cacheKey = `data_${type}`;
     const cached = localStorage.getItem(cacheKey);
-    
-    // Перевіряємо наявність кешу перед запитом
+
     let cachedData = null;
     if (cached) {
-        const p = JSON.parse(cached);
-        cachedData = p.data;
-        // Якщо кеш свіжий (менше 5 хв) і ми не тиснули "Оновити", показуємо відразу
-        if (!force && (Date.now() - p.time < 300000)) {
-            return render(cachedData);
+        try {
+            const p = JSON.parse(cached);
+            cachedData = p.data;
+            if (!force && (Date.now() - p.time < 300000)) {
+                return render(cachedData);
+            }
+        } catch (e) {
+            console.warn("Некоректний локальний кеш:", e);
+            localStorage.removeItem(cacheKey);
         }
     }
 
@@ -100,21 +97,41 @@ window.loadListData = async function(type, force = false) {
         const res = await fetch(`${API_URL}?type=${type}${force ? '&t='+Date.now() : ''}`, {
             credentials: 'same-origin'
         });
-        if (!res.ok) throw new Error("Server error");
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok) {
+            if (res.status === 401 || res.status === 403 || contentType.includes('text/html')) {
+                throw new Error('AUTH_REQUIRED');
+            }
+            throw new Error(`SERVER_${res.status}`);
+        }
+
+        if (!contentType.includes('application/json')) {
+            throw new Error('AUTH_REQUIRED');
+        }
+
         const data = await res.json();
-        
-        // Зберігаємо нові дані
+
         localStorage.setItem(cacheKey, JSON.stringify({time: Date.now(), data}));
         render(data);
-    } catch (e) { 
-        console.error("API Unavailable:", e);
+    } catch (e) {
+        console.error("API error:", e);
+
+        if (e.message === 'AUTH_REQUIRED') {
+            renderAccessRequired(cachedData);
+            return;
+        }
+
+        if (e.message.startsWith('SERVER_')) {
+            renderServiceUnavailable(cachedData);
+            return;
+        }
+
         if (statusEl) {
-            // Якщо сервер впав, але у нас є хоч якийсь кеш — показуємо його
             if (cachedData) {
-                // Викликаємо render, але передаємо true для параметра isOffline
-                render(cachedData, true);
+                render(cachedData, true, 'Немає з’єднання з мережею');
             } else {
-                statusEl.innerText = "Помилка зв'язку (дані відсутні)";
+                statusEl.innerText = "Немає з’єднання з мережею";
             }
         }
     }
@@ -123,14 +140,28 @@ window.loadListData = async function(type, force = false) {
 window.prefetchData = async function(type) {
     const cacheKey = `data_${type}`;
     const cached = localStorage.getItem(cacheKey);
-    if (cached && (Date.now() - JSON.parse(cached).time < 300000)) return;
+
+    if (cached) {
+        try {
+            if (Date.now() - JSON.parse(cached).time < 300000) return;
+        } catch (e) {
+            localStorage.removeItem(cacheKey);
+        }
+    }
+
     try {
         const res = await fetch(`${API_URL}?type=${type}`, {
             credentials: 'same-origin'
         });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok || !contentType.includes('application/json')) return;
+
         const data = await res.json();
         localStorage.setItem(cacheKey, JSON.stringify({time: Date.now(), data}));
-    } catch (e) {}
+    } catch (e) {
+        // Prefetch є фоновим: помилка тут не повинна змінювати інтерфейс.
+    }
 };
 
 /**
@@ -157,24 +188,70 @@ function initLineDrag(line) {
     window.addEventListener('touchend', stopDrag);
 }
 
-function render(data, isOffline = false) {
+function render(data, isOffline = false, customStatus = '') {
     const list = document.getElementById('nameList');
     const status = document.getElementById('statusMsg');
-    if (!list || !status) return; 
+    if (!list || !status) return;
 
     const type = document.body.dataset.pageType;
-    
-    // Формуємо текст статусу залежно від режиму
-    let statusText = isOffline ? `⚠️ Офлайн режим (архів)` : `Всього: ${data.count}`;
-    
+    const statusText = customStatus || (isOffline ? '⚠️ Офлайн режим (архів)' : `Всього: ${data.count}`);
+
     status.innerHTML = `${statusText} <span onclick="window.loadListData('${type}', true)" style="cursor:pointer; margin-left:8px" title="Оновити дані">🔄</span>`;
-    
+
     if (data.items && data.items.length > 0) {
         list.innerHTML = data.items.map(i => `<div class="name-item">${i}</div>`).join('');
     } else {
         list.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.5">Список порожній</div>`;
     }
 }
+
+function renderAccessRequired(cachedData) {
+    const list = document.getElementById('nameList');
+    const status = document.getElementById('statusMsg');
+    if (!status) return;
+
+    if (cachedData && list) {
+        render(cachedData, true, '⚠️ Потрібна авторизація для оновлення');
+        return;
+    }
+
+    if (list) {
+        list.innerHTML = '';
+    }
+
+    status.innerHTML = `
+        <div class="access-required">
+            <strong>Доступ до списків імен</strong>
+            <p>Для доступу до списків потрібно пройти аутентифікацію.</p>
+            <p>Натисніть «Увійти», щоб відкрити сторінку Cloudflare Access та пройти вхід.</p>
+            <a class="access-login-button" href="/pist2026/login/">Увійти</a>
+        </div>
+    `;
+}
+
+function renderServiceUnavailable(cachedData) {
+    const list = document.getElementById('nameList');
+    const status = document.getElementById('statusMsg');
+    if (!status) return;
+
+    if (cachedData && list) {
+        render(cachedData, true, '⚠️ Сервіс тимчасово недоступний');
+        return;
+    }
+
+    if (list) {
+        list.innerHTML = '';
+    }
+
+    status.innerHTML = `
+        <div class="access-required">
+            <strong>Сервіс тимчасово недоступний</strong>
+            <p>Не вдалося отримати актуальні списки. Спробуйте оновити сторінку пізніше.</p>
+            <span onclick="window.loadListData(document.body.dataset.pageType, true)" class="access-login-button" role="button" tabindex="0">🔄 Повторити</span>
+        </div>
+    `;
+}
+
 async function includeComponent(id, name) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -183,8 +260,7 @@ async function includeComponent(id, name) {
     try {
         const res = await fetch(`${prefix}${name}.html`);
         el.innerHTML = await res.text();
-        
-        // Залишаємо тільки синхронізацію теми
+
         if(name === 'toolbar') {
             const s = JSON.parse(localStorage.getItem('p2026_settings')) || {theme:'light'};
             const ts = document.getElementById('themeSelect');
@@ -196,11 +272,10 @@ async function includeComponent(id, name) {
 function applySettings(s) {
     document.documentElement.setAttribute('data-theme', s.theme);
     document.documentElement.style.setProperty('--font-size', s.size);
-    // Використовуємо лапки для назв шрифтів з пробілами
     const family = s.fontFamily.includes(',') ? s.fontFamily : `'${s.fontFamily}', sans-serif`;
     document.documentElement.style.setProperty('--font-family', family);
     document.documentElement.style.setProperty('--width', (parseInt(s.width) || 95) + '%');
-    
+
     const fVal = document.getElementById('fontVal'), wVal = document.getElementById('widthVal');
     if (fVal) fVal.innerText = parseInt(s.size);
     if (wVal) wVal.innerText = parseInt(s.width);
@@ -226,19 +301,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Глобальний слухач кліків (для Chrome та динамічного контенту)
 document.addEventListener('click', function (e) {
-    // 1. Якщо ми клікнули всередині .modal-content, нічого не робимо (це наші налаштування)
     if (e.target.closest('.modal-content')) {
-        return; 
+        return;
     }
 
     const target = e.target.closest('[onclick]');
     if (!target) return;
 
     const attr = target.getAttribute('onclick');
-    
-    // 2. Перевіряємо наші функції
+
     if (attr.includes('toggleReadingMode()')) {
         e.preventDefault();
         e.stopImmediatePropagation();
