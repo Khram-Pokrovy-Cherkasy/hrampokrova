@@ -97,7 +97,9 @@ window.loadListData = async function(type, force = false) {
     if (statusEl) statusEl.innerText = "Оновлення...";
 
     try {
-        const res = await fetch(`${API_URL}?type=${type}${force ? '&t='+Date.now() : ''}`);
+        const res = await fetch(`${API_URL}?type=${type}${force ? '&t='+Date.now() : ''}`, {
+            credentials: 'same-origin'
+        });
         if (!res.ok) throw new Error("Server error");
         const data = await res.json();
         
@@ -123,7 +125,9 @@ window.prefetchData = async function(type) {
     const cached = localStorage.getItem(cacheKey);
     if (cached && (Date.now() - JSON.parse(cached).time < 300000)) return;
     try {
-        const res = await fetch(`${API_URL}?type=${type}`);
+        const res = await fetch(`${API_URL}?type=${type}`, {
+            credentials: 'same-origin'
+        });
         const data = await res.json();
         localStorage.setItem(cacheKey, JSON.stringify({time: Date.now(), data}));
     } catch (e) {}
