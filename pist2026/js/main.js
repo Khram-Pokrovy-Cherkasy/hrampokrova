@@ -1,4 +1,4 @@
-const APP_VERSION = '20261005-1';
+const APP_VERSION = '20261005-2';
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -84,9 +84,6 @@ window.loadListData = async function(type, force = false) {
         try {
             const p = JSON.parse(cached);
             cachedData = p.data;
-            if (!force && (Date.now() - p.time < 300000)) {
-                return render(cachedData);
-            }
         } catch (e) {
             console.warn("Некоректний локальний кеш:", e);
             localStorage.removeItem(cacheKey);
