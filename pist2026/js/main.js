@@ -1,3 +1,5 @@
+const APP_VERSION = '20261005-1';
+
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/pist2026/sw.js', { scope: '/pist2026/' })
@@ -273,7 +275,7 @@ async function includeComponent(id, name) {
     const isSubFolder = window.location.pathname.includes('/za-zdorovya/') || window.location.pathname.includes('/za-spokiy/');
     const prefix = isSubFolder ? '../components/' : 'components/';
     try {
-        const res = await fetch(`${prefix}${name}.html`);
+        const res = await fetch(`${prefix}${name}.html?v=${APP_VERSION}`);
         el.innerHTML = await res.text();
 
         if(name === 'toolbar') {
