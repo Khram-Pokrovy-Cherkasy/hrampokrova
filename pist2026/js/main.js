@@ -126,7 +126,8 @@ window.loadListData = async function(type, force = false) {
         console.error("API error:", e);
 
         if (e.message === 'AUTH_REQUIRED') {
-            renderAccessRequired(cachedData);
+            localStorage.removeItem(cacheKey);
+            renderAccessRequired();
             return;
         }
 
@@ -163,6 +164,17 @@ window.prefetchData = async function(type) {
         });
 
         const contentType = res.headers.get('content-type') || '';
+
+        if (
+            res.type === 'opaqueredirect' ||
+            res.status === 401 ||
+            res.status === 403 ||
+            (res.ok && contentType.includes('text/html'))
+        ) {
+            localStorage.removeItem(cacheKey);
+            return;
+        }
+
         if (!res.ok || !contentType.includes('application/json')) return;
 
         const data = await res.json();
@@ -213,15 +225,10 @@ function render(data, isOffline = false, customStatus = '') {
     }
 }
 
-function renderAccessRequired(cachedData) {
+function renderAccessRequired() {
     const list = document.getElementById('nameList');
     const status = document.getElementById('statusMsg');
     if (!status) return;
-
-    if (cachedData && list) {
-        render(cachedData, true, '⚠️ Потрібна авторизація для оновлення');
-        return;
-    }
 
     if (list) {
         list.innerHTML = '';
