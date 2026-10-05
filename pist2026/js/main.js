@@ -95,14 +95,22 @@ window.loadListData = async function(type, force = false) {
 
     try {
         const res = await fetch(`${API_URL}?type=${type}${force ? '&t='+Date.now() : ''}`, {
-            credentials: 'same-origin'
+            credentials: 'same-origin',
+            redirect: 'manual'
         });
 
         const contentType = res.headers.get('content-type') || '';
+
+        if (
+            res.type === 'opaqueredirect' ||
+            res.status === 401 ||
+            res.status === 403 ||
+            (res.ok && contentType.includes('text/html'))
+        ) {
+            throw new Error('AUTH_REQUIRED');
+        }
+
         if (!res.ok) {
-            if (res.status === 401 || res.status === 403 || contentType.includes('text/html')) {
-                throw new Error('AUTH_REQUIRED');
-            }
             throw new Error(`SERVER_${res.status}`);
         }
 
