@@ -1,1 +1,1 @@
-const API_URL = "https://api.hrampokrova.pp.ua/";
+const API_URL = "/pist2026/api/";
