@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hram-v6'; // Нова версія для примусового оновлення
+const CACHE_NAME = 'hram-v7'; // Нова версія для примусового оновлення
 
 const ASSETS = [
   '/pist2026/',
@@ -13,7 +13,7 @@ const ASSETS = [
   '/pist2026/za-spokiy/index.html',
   // Ресурси
   '/pist2026/css/style.css?v=20261005-2',
-  '/pist2026/js/main.js?v=20261005-2',
+  '/pist2026/js/main.js?v=20261014-1',
   '/pist2026/components/header.html',
   '/pist2026/components/toolbar.html',
   '/pist2026/components/footer.html'

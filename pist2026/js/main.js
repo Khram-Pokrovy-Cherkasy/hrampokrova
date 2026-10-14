@@ -1,4 +1,4 @@
-const APP_VERSION = '20261005-2';
+const APP_VERSION = '20261014-1';
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -78,111 +78,89 @@ window.loadListData = async function(type, force = false) {
     const statusEl = document.getElementById('statusMsg');
     const cacheKey = `data_${type}`;
     const cached = localStorage.getItem(cacheKey);
-
     let cachedData = null;
+
     if (cached) {
         try {
             const p = JSON.parse(cached);
-            cachedData = p.data;
+            if (p && p.data && Array.isArray(p.data.items)) cachedData = p.data;
+            else console.warn("Локальний кеш має неочікувану структуру; запис залишено без змін.");
         } catch (e) {
-            console.warn("Некоректний локальний кеш:", e);
-            localStorage.removeItem(cacheKey);
+            console.warn("Не вдалося прочитати локальний кеш; запис залишено без змін:", e);
         }
     }
 
-    if (statusEl) statusEl.innerText = "Оновлення...";
+    // Відразу показуємо збережені імена, не очікуючи відповіді мережі.
+    if (cachedData) render(cachedData, true, 'Збережені дані — перевіряємо оновлення');
+    else if (statusEl) statusEl.innerText = "Завантаження списку...";
 
     try {
         const res = await fetch(`${API_URL}?type=${type}${force ? '&t='+Date.now() : ''}`, {
             credentials: 'same-origin',
             redirect: 'manual'
         });
-
         const contentType = res.headers.get('content-type') || '';
 
-        if (
-            res.type === 'opaqueredirect' ||
-            res.status === 401 ||
-            res.status === 403 ||
-            (res.ok && contentType.includes('text/html'))
-        ) {
+        if (res.type === 'opaqueredirect' || res.status === 401 || res.status === 403 ||
+            (res.ok && contentType.includes('text/html'))) {
             throw new Error('AUTH_REQUIRED');
         }
-
-        if (!res.ok) {
-            throw new Error(`SERVER_${res.status}`);
-        }
-
-        if (!contentType.includes('application/json')) {
-            throw new Error('AUTH_REQUIRED');
-        }
+        if (!res.ok) throw new Error(`SERVER_${res.status}`);
+        if (!contentType.includes('application/json')) throw new Error('INVALID_RESPONSE');
 
         const data = await res.json();
+        if (!data || !Array.isArray(data.items)) throw new Error('INVALID_RESPONSE');
 
         localStorage.setItem(cacheKey, JSON.stringify({time: Date.now(), data}));
         render(data);
     } catch (e) {
         console.error("API error:", e);
 
-        if (e.message === 'AUTH_REQUIRED') {
-            localStorage.removeItem(cacheKey);
-            renderAccessRequired();
-            return;
-        }
-
-        if (e.message.startsWith('SERVER_')) {
-            renderServiceUnavailable(cachedData);
-            return;
-        }
-
-        if (statusEl) {
-            if (cachedData) {
-                render(cachedData, true, 'Немає з’єднання з мережею');
-            } else {
-                statusEl.innerText = "Немає з’єднання з мережею";
+        // Технічні та неоднозначні auth-помилки ніколи не видаляють кеш.
+        if (cachedData) {
+            let message = '⚠️ Немає з’єднання — показано збережені дані';
+            if (e.message === 'AUTH_REQUIRED') message = '⚠️ Вхід не підтверджено — показано збережені дані';
+            else if (e.message.startsWith('SERVER_') || e.message === 'INVALID_RESPONSE')
+                message = '⚠️ Сервіс тимчасово недоступний — показано збережені дані';
+            render(cachedData, true, message);
+            if (e.message === 'AUTH_REQUIRED' && statusEl) {
+                const login = document.createElement('a');
+                login.href = '/pist2026/login/';
+                login.textContent = 'Увійти';
+                login.title = 'Увійти через Cloudflare Access';
+                statusEl.append(' ', login);
             }
+            return;
         }
+
+        if (e.message === 'AUTH_REQUIRED') renderAccessRequired();
+        else if (e.message.startsWith('SERVER_') || e.message === 'INVALID_RESPONSE') renderServiceUnavailable(null);
+        else if (statusEl) statusEl.innerText = "Немає з’єднання з мережею";
     }
 };
-
 window.prefetchData = async function(type) {
     const cacheKey = `data_${type}`;
     const cached = localStorage.getItem(cacheKey);
-
     if (cached) {
         try {
             if (Date.now() - JSON.parse(cached).time < 300000) return;
         } catch (e) {
-            localStorage.removeItem(cacheKey);
+            console.warn("Не вдалося перевірити вік локального кешу; запис залишено без змін:", e);
         }
     }
 
     try {
-        const res = await fetch(`${API_URL}?type=${type}`, {
-            credentials: 'same-origin'
-        });
-
+        const res = await fetch(`${API_URL}?type=${type}`, {credentials: 'same-origin'});
+        if (!res.ok) return;
         const contentType = res.headers.get('content-type') || '';
-
-        if (
-            res.type === 'opaqueredirect' ||
-            res.status === 401 ||
-            res.status === 403 ||
-            (res.ok && contentType.includes('text/html'))
-        ) {
-            localStorage.removeItem(cacheKey);
-            return;
-        }
-
-        if (!res.ok || !contentType.includes('application/json')) return;
-
+        if (!contentType.includes('application/json')) return;
         const data = await res.json();
+        if (!data || !Array.isArray(data.items)) return;
         localStorage.setItem(cacheKey, JSON.stringify({time: Date.now(), data}));
     } catch (e) {
-        // Prefetch є фоновим: помилка тут не повинна змінювати інтерфейс.
+        // Фонове оновлення не змінює кеш у разі помилки.
     }
 };
-
 /**
  * ДОПОМІЖНІ ФУНКЦІЇ
  */
